@@ -1,0 +1,56 @@
+/* ERP Almacén de Barrio - Estilos personalizados */
+
+body {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.footer {
+    margin-top: auto;
+}
+
+/* Navbar */
+.navbar-brand {
+    font-size: 1.2rem;
+    letter-spacing: 0.5px;
+}
+
+/* Cards */
+.card {
+    border-radius: 0.75rem;
+}
+
+/* Tables */
+.table th {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/* POS */
+#resultadosBusqueda .list-group-item:hover {
+    background-color: #e8f4fd;
+    cursor: pointer;
+}
+
+/* Boleta para impresión */
+@media print {
+    nav, footer, .btn, .alert, form {
+        display: none !important;
+    }
+    #boleta {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+    }
+}
+
+/* Badge personalizado */
+.badge {
+    font-size: 0.78rem;
+}

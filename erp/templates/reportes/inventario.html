@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Reporte de Inventario{% endblock %}
+
+{% block content %}
+<h2 class="mb-3"><i class="bi bi-boxes"></i> Reporte de Inventario</h2>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <div class="fs-3 fw-bold text-primary">{{ productos | length }}</div>
+                <div class="text-muted small">Productos activos</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <div class="fs-3 fw-bold text-danger">{{ bajo_stock | length }}</div>
+                <div class="text-muted small">Bajo stock mínimo</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <div class="fs-3 fw-bold text-success">$ {{ "{:,.0f}".format(valor_inventario) }}</div>
+                <div class="text-muted small">Valor total inventario (costo)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if bajo_stock %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle"></i>
+    <strong>Alerta:</strong> {{ bajo_stock | length }} producto(s) con stock bajo o agotado.
+</div>
+{% endif %}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th class="text-center">Stock</th>
+                    <th class="text-center">Mínimo</th>
+                    <th class="text-end">P. Compra</th>
+                    <th class="text-end">Valor total</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in productos %}
+                <tr {% if p.stock_bajo %}class="table-warning"{% endif %}>
+                    <td><code>{{ p.codigo }}</code></td>
+                    <td>{{ p.nombre }}</td>
+                    <td class="text-muted small">{{ p.categoria.nombre if p.categoria else '—' }}</td>
+                    <td class="text-center">{{ p.stock_actual }}</td>
+                    <td class="text-center text-muted">{{ p.stock_minimo }}</td>
+                    <td class="text-end">$ {{ "{:,.0f}".format(p.precio_compra) }}</td>
+                    <td class="text-end">$ {{ "{:,.0f}".format(p.precio_compra * p.stock_actual) }}</td>
+                    <td>
+                        {% if p.stock_actual == 0 %}
+                            <span class="badge bg-danger">Agotado</span>
+                        {% elif p.stock_bajo %}
+                            <span class="badge bg-warning text-dark">Bajo stock</span>
+                        {% else %}
+                            <span class="badge bg-success">OK</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

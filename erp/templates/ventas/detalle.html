@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Detalle Venta {{ venta.numero_boleta }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+    <h3>Venta {{ venta.numero_boleta }}</h3>
+    <a href="{{ url_for('ventas.boleta', venta_id=venta.id) }}" class="btn btn-outline-primary" target="_blank">
+        <i class="bi bi-printer"></i> Imprimir Boleta
+    </a>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header fw-semibold">Detalle</div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-center">Cantidad</th>
+                            <th class="text-end">P. Unitario</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in venta.detalles %}
+                        <tr>
+                            <td>{{ d.producto.nombre if d.producto else '?' }}</td>
+                            <td class="text-center">{{ d.cantidad }}</td>
+                            <td class="text-end">$ {{ "{:,.0f}".format(d.precio_unitario) }}</td>
+                            <td class="text-end fw-semibold">$ {{ "{:,.0f}".format(d.subtotal) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <td colspan="3" class="text-end">Neto:</td>
+                            <td class="text-end">$ {{ "{:,.0f}".format(venta.subtotal) }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end">IVA 19%:</td>
+                            <td class="text-end">$ {{ "{:,.0f}".format(venta.iva) }}</td>
+                        </tr>
+                        <tr class="fw-bold">
+                            <td colspan="3" class="text-end">TOTAL:</td>
+                            <td class="text-end text-success fs-5">$ {{ "{:,.0f}".format(venta.total) }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header fw-semibold">Información</div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Fecha:</span>
+                    <span>{{ venta.fecha.strftime('%d/%m/%Y %H:%M') }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Método pago:</span>
+                    <strong>{{ venta.metodo_pago }}</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Estado:</span>
+                    <span class="badge bg-success">{{ venta.estado }}</span>
+                </li>
+                {% if venta.referencia_pago %}
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Referencia:</span>
+                    <code>{{ venta.referencia_pago }}</code>
+                </li>
+                {% endif %}
+                {% if venta.empleado %}
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Vendedor:</span>
+                    <span>{{ venta.empleado.nombre_completo }}</span>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
