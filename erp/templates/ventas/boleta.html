@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Boleta {{ venta.numero_boleta }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card border-0 shadow-sm" id="boleta">
+            <div class="card-body">
+                <!-- Encabezado -->
+                <div class="text-center mb-3">
+                    <h4 class="fw-bold mb-0">🏪 ALMACÉN DE BARRIO</h4>
+                    <p class="text-muted small mb-0">BOLETA ELECTRÓNICA</p>
+                    <h5 class="text-primary fw-bold mt-2">N° {{ venta.numero_boleta }}</h5>
+                    <p class="text-muted small">{{ venta.fecha.strftime('%d/%m/%Y %H:%M') }}</p>
+                </div>
+
+                <hr>
+
+                <!-- Detalle -->
+                <table class="table table-sm table-borderless">
+                    <thead>
+                        <tr class="border-bottom">
+                            <th>Descripción</th>
+                            <th class="text-center">Cant.</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in venta.detalles %}
+                        <tr>
+                            <td>
+                                {{ d.producto.nombre if d.producto else 'Producto eliminado' }}
+                                <br><small class="text-muted">$ {{ "{:,.0f}".format(d.precio_unitario) }} c/u</small>
+                            </td>
+                            <td class="text-center">{{ d.cantidad }}</td>
+                            <td class="text-end">$ {{ "{:,.0f}".format(d.subtotal) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <hr>
+
+                <!-- Totales -->
+                <div class="d-flex justify-content-between">
+                    <span>Neto:</span>
+                    <span>$ {{ "{:,.0f}".format(venta.subtotal) }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>IVA (19%):</span>
+                    <span>$ {{ "{:,.0f}".format(venta.iva) }}</span>
+                </div>
+                <div class="d-flex justify-content-between fw-bold fs-5 border-top mt-2 pt-2">
+                    <span>TOTAL:</span>
+                    <span class="text-success">$ {{ "{:,.0f}".format(venta.total) }}</span>
+                </div>
+
+                <hr>
+
+                <!-- Pago -->
+                <div class="d-flex justify-content-between text-muted small">
+                    <span>Método de pago:</span>
+                    <strong>{{ venta.metodo_pago | upper }}</strong>
+                </div>
+                {% if venta.referencia_pago %}
+                <div class="d-flex justify-content-between text-muted small">
+                    <span>Referencia:</span>
+                    <code>{{ venta.referencia_pago }}</code>
+                </div>
+                {% endif %}
+                {% if venta.empleado %}
+                <div class="d-flex justify-content-between text-muted small">
+                    <span>Vendedor:</span>
+                    <span>{{ venta.empleado.nombre_completo }}</span>
+                </div>
+                {% endif %}
+
+                <div class="text-center mt-3 text-muted small">
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                    Pago procesado automáticamente
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-3 justify-content-center">
+            <button onclick="window.print()" class="btn btn-outline-secondary">
+                <i class="bi bi-printer"></i> Imprimir
+            </button>
+            <a href="{{ url_for('ventas.lista_ventas') }}" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+            <a href="{{ url_for('ventas.pos') }}" class="btn btn-success">
+                <i class="bi bi-cart-plus"></i> Nueva Venta
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

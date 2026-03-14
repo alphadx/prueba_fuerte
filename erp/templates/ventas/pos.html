@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+{% block title %}Punto de Venta{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <!-- Buscador de productos -->
+    <div class="col-md-7">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header fw-semibold bg-primary text-white">
+                <i class="bi bi-search"></i> Buscar Producto
+            </div>
+            <div class="card-body">
+                <div class="input-group mb-3">
+                    <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+                    <input type="text" id="buscarProducto" class="form-control form-control-lg"
+                           placeholder="Nombre o código del producto..." autofocus>
+                </div>
+                <div id="resultadosBusqueda" class="list-group"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carrito -->
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header fw-semibold bg-success text-white">
+                <i class="bi bi-cart3"></i> Carrito de Venta
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0" id="tablaCarrito">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-center" style="width:80px">Cant.</th>
+                            <th class="text-end">Precio</th>
+                            <th class="text-end">Sub.</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="carritoBody">
+                        <tr id="carritoVacio">
+                            <td colspan="5" class="text-center text-muted py-3">
+                                <i class="bi bi-cart-x fs-3 d-block"></i>
+                                Carrito vacío
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer bg-white">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Subtotal (sin IVA):</span>
+                    <span>$ <span id="subtotalNeto">0</span></span>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">IVA (19%):</span>
+                    <span>$ <span id="montoIva">0</span></span>
+                </div>
+                <div class="d-flex justify-content-between fw-bold fs-5 border-top pt-2">
+                    <span>TOTAL:</span>
+                    <span class="text-success">$ <span id="totalCarrito">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pago -->
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-header fw-semibold">
+                <i class="bi bi-credit-card"></i> Método de Pago
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <select id="metodoPago" class="form-select">
+                        {% for m in metodos_pago %}
+                        <option value="{{ m }}">
+                            {% if m == 'efectivo' %}💵 Efectivo
+                            {% elif m == 'debito' %}💳 Débito (WebPay)
+                            {% elif m == 'credito' %}💳 Crédito (WebPay)
+                            {% elif m == 'transferencia' %}🏦 Transferencia
+                            {% elif m == 'mercadopago' %}📱 MercadoPago
+                            {% else %}{{ m }}{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id="referenciaDiv" class="mb-3 d-none">
+                    <label class="form-label small">N° Transferencia / Referencia</label>
+                    <input type="text" id="referenciaPago" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small">Vendedor</label>
+                    <select id="empleadoId" class="form-select">
+                        <option value="">Sin asignar</option>
+                        {% for e in empleados %}
+                        <option value="{{ e.id }}">{{ e.nombre_completo }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button id="btnPagar" class="btn btn-success btn-lg w-100" disabled>
+                    <i class="bi bi-check-circle"></i> Cobrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Boleta -->
+<div class="modal fade" id="modalBoleta" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-receipt-cutoff"></i> Venta Exitosa</h5>
+            </div>
+            <div class="modal-body text-center">
+                <div class="fs-1 text-success mb-2"><i class="bi bi-check-circle-fill"></i></div>
+                <h4>¡Venta procesada!</h4>
+                <p class="mb-1">Boleta N°: <strong id="modalBoletaNumero">—</strong></p>
+                <p class="mb-1">Total: <strong class="text-success" id="modalTotal">—</strong></p>
+                <p class="mb-1">Pago: <span id="modalMetodo">—</span></p>
+                <p class="text-muted small">Ref.: <span id="modalRef">—</span></p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <a id="btnVerBoleta" href="#" class="btn btn-outline-primary" target="_blank">
+                    <i class="bi bi-printer"></i> Ver Boleta
+                </a>
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal" id="btnNuevaVenta">
+                    Nueva Venta
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Carrito en memoria
+let carrito = [];
+
+// Búsqueda de productos (debounce)
+let timerBusqueda;
+document.getElementById('buscarProducto').addEventListener('input', function() {
+    clearTimeout(timerBusqueda);
+    const q = this.value.trim();
+    if (q.length < 1) {
+        document.getElementById('resultadosBusqueda').innerHTML = '';
+        return;
+    }
+    timerBusqueda = setTimeout(() => buscarProducto(q), 300);
+});
+
+async function buscarProducto(q) {
+    const resp = await fetch(`/inventario/api/buscar?q=${encodeURIComponent(q)}`);
+    const productos = await resp.json();
+    const div = document.getElementById('resultadosBusqueda');
+    if (productos.length === 0) {
+        div.innerHTML = '<div class="list-group-item text-muted">Sin resultados</div>';
+        return;
+    }
+    div.innerHTML = productos.map(p => `
+        <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                onclick="agregarAlCarrito(${p.id}, '${p.nombre.replace(/'/g, "\\'")}', ${p.precio_venta}, ${p.stock_actual})">
+            <span>
+                <code class="me-2">${p.codigo}</code>${p.nombre}
+                <small class="text-muted ms-2">(stock: ${p.stock_actual})</small>
+            </span>
+            <strong class="text-success">$ ${formatNum(p.precio_venta)}</strong>
+        </button>
+    `).join('');
+}
+
+function agregarAlCarrito(id, nombre, precio, stock) {
+    const existente = carrito.find(i => i.producto_id === id);
+    if (existente) {
+        if (existente.cantidad >= stock) {
+            alert(`Stock insuficiente. Disponible: ${stock}`);
+            return;
+        }
+        existente.cantidad++;
+    } else {
+        carrito.push({ producto_id: id, nombre, precio, cantidad: 1, stock });
+    }
+    document.getElementById('buscarProducto').value = '';
+    document.getElementById('resultadosBusqueda').innerHTML = '';
+    document.getElementById('buscarProducto').focus();
+    renderCarrito();
+}
+
+function cambiarCantidad(id, delta) {
+    const item = carrito.find(i => i.producto_id === id);
+    if (!item) return;
+    item.cantidad += delta;
+    if (item.cantidad <= 0) {
+        carrito = carrito.filter(i => i.producto_id !== id);
+    }
+    renderCarrito();
+}
+
+function quitarItem(id) {
+    carrito = carrito.filter(i => i.producto_id !== id);
+    renderCarrito();
+}
+
+function renderCarrito() {
+    const tbody = document.getElementById('carritoBody');
+    const btnPagar = document.getElementById('btnPagar');
+
+    if (carrito.length === 0) {
+        tbody.innerHTML = `<tr id="carritoVacio">
+            <td colspan="5" class="text-center text-muted py-3">
+                <i class="bi bi-cart-x fs-3 d-block"></i>Carrito vacío
+            </td></tr>`;
+        btnPagar.disabled = true;
+        actualizarTotales(0);
+        return;
+    }
+
+    tbody.innerHTML = carrito.map(item => {
+        const sub = item.precio * item.cantidad;
+        return `<tr>
+            <td class="small">${item.nombre}</td>
+            <td class="text-center">
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary" onclick="cambiarCantidad(${item.producto_id}, -1)">-</button>
+                    <span class="btn btn-outline-secondary disabled">${item.cantidad}</span>
+                    <button class="btn btn-outline-secondary" onclick="cambiarCantidad(${item.producto_id}, 1)">+</button>
+                </div>
+            </td>
+            <td class="text-end small">$ ${formatNum(item.precio)}</td>
+            <td class="text-end small fw-semibold">$ ${formatNum(sub)}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-danger" onclick="quitarItem(${item.producto_id})">
+                    <i class="bi bi-x"></i>
+                </button>
+            </td>
+        </tr>`;
+    }).join('');
+
+    const total = carrito.reduce((s, i) => s + i.precio * i.cantidad, 0);
+    actualizarTotales(total);
+    btnPagar.disabled = false;
+}
+
+function actualizarTotales(total) {
+    const iva = Math.round(total * 0.19 / 1.19);
+    const neto = total - iva;
+    document.getElementById('totalCarrito').textContent = formatNum(total);
+    document.getElementById('montoIva').textContent = formatNum(iva);
+    document.getElementById('subtotalNeto').textContent = formatNum(neto);
+}
+
+function formatNum(n) {
+    return Math.round(n).toLocaleString('es-CL');
+}
+
+// Mostrar campo referencia para transferencia
+document.getElementById('metodoPago').addEventListener('change', function() {
+    document.getElementById('referenciaDiv').classList.toggle('d-none', this.value !== 'transferencia');
+});
+
+// Procesar venta
+document.getElementById('btnPagar').addEventListener('click', async function() {
+    if (carrito.length === 0) return;
+    this.disabled = true;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Procesando...';
+
+    const payload = {
+        items: carrito.map(i => ({ producto_id: i.producto_id, cantidad: i.cantidad })),
+        metodo_pago: document.getElementById('metodoPago').value,
+        empleado_id: document.getElementById('empleadoId').value || null,
+        referencia: document.getElementById('referenciaPago').value || null,
+    };
+
+    try {
+        const resp = await fetch('/ventas/pos/procesar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const data = await resp.json();
+
+        if (resp.ok && data.estado === 'ok') {
+            document.getElementById('modalBoletaNumero').textContent = data.numero_boleta;
+            document.getElementById('modalTotal').textContent = '$ ' + formatNum(data.total);
+            document.getElementById('modalMetodo').textContent = data.metodo_pago;
+            document.getElementById('modalRef').textContent = data.referencia_pago;
+            document.getElementById('btnVerBoleta').href = `/ventas/pos/boleta_redirect?boleta=${encodeURIComponent(data.numero_boleta)}`;
+
+            new bootstrap.Modal(document.getElementById('modalBoleta')).show();
+        } else {
+            alert('Error: ' + (data.error || 'Error desconocido'));
+        }
+    } catch (e) {
+        alert('Error de conexión: ' + e.message);
+    } finally {
+        this.disabled = false;
+        this.innerHTML = '<i class="bi bi-check-circle"></i> Cobrar';
+    }
+});
+
+// Limpiar carrito al cerrar el modal
+document.getElementById('btnNuevaVenta').addEventListener('click', function() {
+    carrito = [];
+    renderCarrito();
+});
+</script>
+{% endblock %}
