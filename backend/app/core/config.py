@@ -17,10 +17,13 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-if not settings.DEBUG and settings.SECRET_KEY == "change-me-in-production":
+if settings.SECRET_KEY == "change-me-in-production":
     import warnings
-    warnings.warn(
+    _msg = (
         "SECRET_KEY is set to the default placeholder value. "
-        "Set a strong SECRET_KEY environment variable before deploying to production.",
-        stacklevel=1,
+        "Set a strong SECRET_KEY environment variable before deploying to production."
     )
+    if settings.DEBUG:
+        warnings.warn(_msg, stacklevel=1)
+    else:
+        raise RuntimeError(_msg)

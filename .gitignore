@@ -1,1 +1,40 @@
-__pycache__/\n*.pyc\n*.pyo\n.env\n*.egg-info/
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment variables
+.env
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads
+uploads/
+
+# Logs
+*.log

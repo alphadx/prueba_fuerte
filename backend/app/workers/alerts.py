@@ -88,12 +88,19 @@ async def run_alert_check(db: AsyncSession) -> int:
                 users = users_result.scalars().all()
 
                 for user in users:
+                    days_remaining = (doc.end_date - today).days
+                    if days_remaining > 0:
+                        days_msg = f"Quedan {days_remaining} días."
+                    elif days_remaining == 0:
+                        days_msg = "Vence hoy."
+                    else:
+                        days_msg = f"Venció hace {abs(days_remaining)} días."
                     notif = Notification(
                         user_id=user.id,
                         title=f"Documento por vencer: {doc.id}",
                         body=(
                             f"El documento del empleado vence el {doc.end_date}. "
-                            f"Quedan {(doc.end_date - today).days} días."
+                            f"{days_msg}"
                         ),
                         link=f"/employees/{doc.employee_id}/documents/{doc.id}",
                     )

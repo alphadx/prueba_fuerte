@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Optional, List
 
-from sqlalchemy import String, Boolean, ForeignKey, DateTime, Text, Numeric
+from sqlalchemy import String, Boolean, ForeignKey, DateTime, Text, Numeric, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
@@ -33,6 +33,11 @@ class Category(Base):
 
 class Product(Base):
     __tablename__ = "products"
+    # Partial unique index on SKU (excluding NULLs) so that multiple products
+    # can exist without a SKU while still enforcing uniqueness when SKU is set.
+    __table_args__ = (
+        Index("ix_products_sku_unique", "sku", unique=True, postgresql_where="sku IS NOT NULL"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     branch_id: Mapped[Optional[int]] = mapped_column(
@@ -42,7 +47,7 @@ class Product(Base):
         ForeignKey("categories.id"), nullable=True
     )
     name: Mapped[str] = mapped_column(String(200), nullable=False)
-    sku: Mapped[Optional[str]] = mapped_column(String(100), unique=True, nullable=True, index=True)
+    sku: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, index=True)
     barcode: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, index=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     unit_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False, default=0)
