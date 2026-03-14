@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Categorías{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header fw-semibold">Nueva Categoría</div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('inventario.nueva_categoria') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" name="nombre" class="form-control" required maxlength="100">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <input type="text" name="descripcion" class="form-control" maxlength="255">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Agregar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header fw-semibold">Categorías existentes</div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th class="text-center">Productos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat in categorias %}
+                        <tr>
+                            <td class="fw-semibold">{{ cat.nombre }}</td>
+                            <td class="text-muted small">{{ cat.descripcion or '—' }}</td>
+                            <td class="text-center">
+                                <a href="{{ url_for('inventario.lista_productos', categoria_id=cat.id) }}"
+                                   class="badge bg-secondary text-decoration-none">
+                                    {{ cat.productos | selectattr('activo') | list | length }}
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-center text-muted">Sin categorías.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

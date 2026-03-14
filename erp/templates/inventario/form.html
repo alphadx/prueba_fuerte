@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}{% if producto %}Editar{% else %}Nuevo{% endif %} Producto{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-box-seam"></i>
+                    {% if producto %}Editar Producto{% else %}Nuevo Producto{% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% if not producto %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Código <span class="text-danger">*</span></label>
+                        <input type="text" name="codigo" class="form-control text-uppercase"
+                               required placeholder="Ej: ARR001" maxlength="50">
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" name="nombre" class="form-control" required maxlength="150"
+                               value="{{ producto.nombre if producto else '' }}" placeholder="Ej: Arroz 1kg">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <input type="text" name="descripcion" class="form-control" maxlength="255"
+                               value="{{ producto.descripcion if producto else '' }}">
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Precio Compra (CLP) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" name="precio_compra" class="form-control" min="0" step="1"
+                                       required value="{{ producto.precio_compra | int if producto else '' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Precio Venta (CLP) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" name="precio_venta" class="form-control" min="0" step="1"
+                                       required value="{{ producto.precio_venta | int if producto else '' }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        {% if not producto %}
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Stock Inicial</label>
+                            <input type="number" name="stock_actual" class="form-control" min="0" value="0">
+                        </div>
+                        {% endif %}
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Stock Mínimo</label>
+                            <input type="number" name="stock_minimo" class="form-control" min="0"
+                                   value="{{ producto.stock_minimo if producto else 5 }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Unidad de Medida</label>
+                            <select name="unidad_medida" class="form-select">
+                                {% for u in ['unidad', 'kg', 'litro', 'botella', 'caja', 'bolsa', 'paquete'] %}
+                                <option value="{{ u }}"
+                                    {% if producto and producto.unidad_medida == u %}selected{% endif %}>
+                                    {{ u }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Categoría</label>
+                            <select name="categoria_id" class="form-select">
+                                <option value="">Sin categoría</option>
+                                {% for cat in categorias %}
+                                <option value="{{ cat.id }}"
+                                    {% if producto and producto.categoria_id == cat.id %}selected{% endif %}>
+                                    {{ cat.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Guardar
+                        </button>
+                        <a href="{{ url_for('inventario.lista_productos') }}" class="btn btn-secondary">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

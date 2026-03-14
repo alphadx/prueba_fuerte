@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}{% if empleado %}Editar{% else %}Nuevo{% endif %} Empleado{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-person-badge"></i>
+                    {% if empleado %}Editar Empleado{% else %}Nuevo Empleado{% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% if not empleado %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">RUT <span class="text-danger">*</span></label>
+                        <input type="text" name="rut" class="form-control" required
+                               placeholder="Ej: 12345678-9" maxlength="12">
+                        <div class="form-text">Formato: 12345678-9 (con o sin puntos)</div>
+                    </div>
+                    {% else %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">RUT</label>
+                        <input type="text" class="form-control" value="{{ empleado.rut }}" disabled>
+                    </div>
+                    {% endif %}
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+                            <input type="text" name="nombre" class="form-control" required maxlength="100"
+                                   value="{{ empleado.nombre if empleado else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Apellido <span class="text-danger">*</span></label>
+                            <input type="text" name="apellido" class="form-control" required maxlength="100"
+                                   value="{{ empleado.apellido if empleado else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3 mt-3">
+                        <label class="form-label fw-semibold">Cargo <span class="text-danger">*</span></label>
+                        <input type="text" name="cargo" class="form-control" required maxlength="100"
+                               value="{{ empleado.cargo if empleado else '' }}"
+                               placeholder="Ej: Cajero, Bodeguero, Administrador">
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" name="telefono" class="form-control" maxlength="20"
+                                   value="{{ empleado.telefono if empleado else '' }}"
+                                   placeholder="+56 9 XXXX XXXX">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" maxlength="150"
+                                   value="{{ empleado.email if empleado else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Sueldo Base (CLP)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" name="sueldo_base" class="form-control" min="0" step="1000"
+                                       value="{{ empleado.sueldo_base | int if empleado else 460000 }}">
+                            </div>
+                            <div class="form-text">Sueldo mínimo Chile 2024: $460.000</div>
+                        </div>
+                        {% if not empleado %}
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha de Ingreso</label>
+                            <input type="date" name="fecha_ingreso" class="form-control"
+                                   value="{{ today }}">
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Guardar
+                        </button>
+                        <a href="{{ url_for('personal.lista_empleados') }}" class="btn btn-secondary">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Turnos - {{ empleado.nombre_completo }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-calendar3"></i> Turnos de {{ empleado.nombre_completo }}</h2>
+    <a href="{{ url_for('personal.lista_empleados') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="row g-3">
+    <!-- Formulario nuevo turno -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header fw-semibold">Registrar Turno</div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('personal.nuevo_turno', empleado_id=empleado.id) }}">
+                    <div class="mb-2">
+                        <label class="form-label small">Fecha <span class="text-danger">*</span></label>
+                        <input type="date" name="fecha" class="form-control" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Hora entrada</label>
+                        <input type="time" name="hora_entrada" class="form-control">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Hora salida</label>
+                        <input type="time" name="hora_salida" class="form-control">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Tipo</label>
+                        <select name="tipo" class="form-select">
+                            <option value="normal">Normal</option>
+                            <option value="extra">Horas extra</option>
+                            <option value="feriado">Feriado</option>
+                            <option value="descanso">Descanso</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small">Observación</label>
+                        <input type="text" name="observacion" class="form-control" maxlength="255">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Agregar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historial de turnos -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header fw-semibold">Historial (últimos 60)</div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Entrada</th>
+                            <th>Salida</th>
+                            <th>Tipo</th>
+                            <th>Obs.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in turnos %}
+                        <tr>
+                            <td>{{ t.fecha.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ t.hora_entrada.strftime('%H:%M') if t.hora_entrada else '—' }}</td>
+                            <td>{{ t.hora_salida.strftime('%H:%M') if t.hora_salida else '—' }}</td>
+                            <td>
+                                <span class="badge {% if t.tipo == 'extra' %}bg-warning text-dark{% elif t.tipo == 'feriado' %}bg-info{% elif t.tipo == 'descanso' %}bg-secondary{% else %}bg-primary{% endif %}">
+                                    {{ t.tipo }}
+                                </span>
+                            </td>
+                            <td class="text-muted small">{{ t.observacion or '—' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">Sin turnos registrados.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
